@@ -10,8 +10,32 @@ using namespace std;
 #define DEF_floorGridXSteps	10.0
 #define DEF_floorGridZSteps	10.0
 
+int ctlpoints[21][21][3] = {0};
 
 GLUnurbsObj *theNurb;
+void puntosNurb(){
+	glColor3f(1.0,0.0,0.0);
+	float xpoint = -10;
+	float ypoint = 0;
+	float zpoint = -10;
+
+	glBegin(GL_LINES);
+	for(int i = 0; i <=20; i++){
+		for(int j = 0; j <=20; j++){
+			ctlpoints[i][j][0]=xpoint++;
+			ctlpoints[i][j][1]=0;
+			ctlpoints[i][j][2]=zpoint;
+		}
+		xpoint = -10;
+		ypoint = 0;
+		zpoint++;
+	}
+		
+	glEnd();
+
+	glColor3f(0.0,1.0,0.0);
+
+}
 
 void ejesCoordenada() {
 	
@@ -77,8 +101,10 @@ void init_surface() {
 
 void init(){
 
+   puntosNurb();
 
-
+   glEnable(GL_PROGRAM_POINT_SIZE);
+   //gl_PointSize = 10.0
    glEnable(GL_LIGHTING);
    glEnable(GL_LIGHT0);
    glEnable(GL_DEPTH_TEST);
@@ -197,9 +223,10 @@ void render(){
 	
 	glPopMatrix();
 	
+	glPushMatrix();
+
+	glPopMatrix();
 	
-	/* Muestra los puntos de control */
-	/*
 		int i,j;
 		glPointSize(5.0);
 		glDisable(GL_LIGHTING);
@@ -212,7 +239,6 @@ void render(){
 		}
 		glEnd();
 		glEnable(GL_LIGHTING);
-	*/
 		
 
 	glDisable(GL_BLEND);
@@ -231,7 +257,6 @@ void animacion(int value) {
 int main (int argc, char** argv) {
 
 	glutInit(&argc, argv);
-
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
 	glutInitWindowSize(960,540);
