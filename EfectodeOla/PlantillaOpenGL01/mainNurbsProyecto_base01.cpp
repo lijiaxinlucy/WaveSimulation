@@ -1,5 +1,3 @@
-// Cubica
-
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <iostream>
@@ -7,6 +5,15 @@
 
 using namespace std;
 
+/* Proyecto 3 - Computación Gráfica
+Abr-Jul 2016
+Ultima modificación: 29/05/16
+autores:
+Marisela Del Valle 11-10267
+Nabil J. Marquez   11-10683
+*/
+
+//Inicializadores
 #define DEF_floorGridScale	1.0f
 #define DEF_floorGridXSteps	10.0f
 #define DEF_floorGridZSteps	10.0f
@@ -19,6 +26,7 @@ GLfloat knotsSurfs[25] = {0};
 GLUnurbsObj *theNurbSurf;
 float t;
 
+// Variables de la ecuación de la ola
 GLfloat ctlpoints[21][21][3] = {0};
 GLfloat L[2] = {0};
 GLfloat A[2] = {0};
@@ -32,7 +40,7 @@ bool paused = true;
 
 #define PI 3.1415926535897932384626433832795
 
-
+// Puntos de control
 void puntosNurb(){
 	glColor3f(1.0,0.0,0.0);
 	float xpoint = -10;
@@ -61,11 +69,12 @@ void init_surface(){
 
 }
 
-
+// Creamos la ecuación con los valores dados
 GLfloat newY(GLfloat X, GLfloat Z,GLfloat T){
 	return (A[0]*sin((Dx[0]*X+Dz[0]*Z)*W[0]+T*G[0])) + (A[1]*sin((Dx[1]*X+Dz[1]*Z)*W[1]+T*G[1])) ;
 }
 
+// Actualizamos valores de la ecuacion y los puntos de control
 void updateY(int value){
 	if (!paused) {
 		t += 0.1;
@@ -83,6 +92,7 @@ void updateY(int value){
 	glutPostRedisplay();
 }
 
+// Se imprimen los valores que toman las olas
 void imprimirVariables() {
 	system("cls"); // Clear screen
 	if (paused)
@@ -102,6 +112,23 @@ void imprimirVariables() {
 	printf("%s%f\n\n", "dirY = ", Dz[1]);
 }
 
+// Valores iniciales para las olas
+void initOlas(){
+	// Ola 1
+	L[0] = 8;
+	A[0] = 0.4;
+	S[0] = 2;
+	Dx[0]= 0;
+	Dz[0]= -1;
+	// Ola 2
+	L[1] = 4;
+	A[1] = 0;
+	S[1] = 0;
+	Dx[1]= 1;
+	Dz[1]= 1;
+}
+
+//Puntos de control
 void init(){
 	knotsSurfs[4]=0.058;
 	for (int i = 0; i<4; i++){
@@ -129,60 +156,10 @@ void init(){
 	puntosNurb();
 	glutTimerFunc(10,updateY,1);
 	t = 0.0;
-
-	L[0] = 8;
-	A[0] = 0.4;
-	S[0] = 2;
-	Dx[0]= 0;
-	Dz[0]= -1;
-
-	L[1] = 4;
-	A[1] = 0;
-	S[1] = 0;
-	Dx[1]= 1;
-	Dz[1]= 1;
-	imprimirVariables();
-}
-
-
-void ejesCoordenada() {
 	
-	glLineWidth(2.5);
-	glBegin(GL_LINES);
-		glColor3f(1.0,0.0,0.0);
-		glVertex2f(0,10);
-		glVertex2f(0,-10);
-		glColor3f(0.0,0.0,1.0);
-		glVertex2f(10,0);
-		glVertex2f(-10,0);
-	glEnd();
-
-	glLineWidth(1.5);
-	int i;
-	glColor3f(0.0,1.0,0.0);
-	glBegin(GL_LINES);
-		for(i = -10; i <=10; i++){
-			if (i!=0) {		
-				if ((i%2)==0){	
-					glVertex2f(i,0.4);
-					glVertex2f(i,-0.4);
-
-					glVertex2f(0.4,i);
-					glVertex2f(-0.4,i);
-				}else{
-					glVertex2f(i,0.2);
-					glVertex2f(i,-0.2);
-
-					glVertex2f(0.2,i);
-					glVertex2f(-0.2,i);
-
-				}
-			}
-		}
-		
-	glEnd();
-
-	glLineWidth(1.0);
+	//Iniciamos las olas con los valores correspondientes
+	initOlas();
+	imprimirVariables();
 }
 
 void changeViewport(int w, int h) {
@@ -201,7 +178,7 @@ void changeViewport(int w, int h) {
   
 }
 
-
+// Render principal
 void render(){
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -233,123 +210,19 @@ void render(){
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);   
 
 
-	// Render Grid 
-	/*glDisable(GL_LIGHTING);
-	glLineWidth(1.0);
-	glPushMatrix();
-	glRotatef(90,1.0,0.0,0.0);
-    glColor3f( 0.0, 0.7, 0.7 );
-   /* glBegin( GL_LINES );
-    zExtent = DEF_floorGridScale * DEF_floorGridZSteps;
-    for(loopX = -DEF_floorGridXSteps; loopX <= DEF_floorGridXSteps; loopX++ )
-	{
-	xLocal = DEF_floorGridScale * loopX;
-	glVertex3f( xLocal, -zExtent, 0.0 );
-	glVertex3f( xLocal, zExtent,  0.0 );
-	}
-    xExtent = DEF_floorGridScale * DEF_floorGridXSteps;
-    for(loopZ = -DEF_floorGridZSteps; loopZ <= DEF_floorGridZSteps; loopZ++ )
-	{
-	zLocal = DEF_floorGridScale * loopZ;
-	glVertex3f( -xExtent, zLocal, 0.0 );
-	glVertex3f(  xExtent, zLocal, 0.0 );
-	}
-    glEnd();
-	//ejesCoordenada();
-    glPopMatrix();
-	glEnable(GL_LIGHTING);
-	// Fin Grid
-	
-	glColor3f(0.0,1.0,0.0);
-	glPointSize(10.0);*/
-	/*glBegin(GL_POINTS);
-		glVertex2f(0.0,0.0);
-	glEnd();*/
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_LINE_SMOOTH);
 
-
-	//Bezier
-	/*
-	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, &ctrPoints01[0][0]);
-	glEnable(GL_MAP1_VERTEX_3);
-
-	int i;
-	float res = 30.0f; // Resolucion de la curva
-	glColor3f(1.0,1.0,0.0);
-
-	glBegin(GL_LINE_STRIP);
-		for (i=0; i<=res; i++){
-			glEvalCoord1f( (GLfloat) i / res);
-		} 
-	glEnd();
-
-	//Grafica Ptos de Control
-	glPointSize(10.0);
-	glColor3f(0.0,1.0,1.0);
-	glBegin(GL_POINTS);
-		for (i = 0; i < 4; i++){
-			glVertex3fv(&ctrPoints01[i][0]);
-		}
-	glEnd();
-	*/
-	/*
-	//Curva Nurbs
-	glColor3f(0.0,1.0,0.0);
-	gluBeginCurve(theNurb01);
-		gluNurbsCurve(theNurb01, 8, knots01, 3, &ctrlpointsCurveNurbs01[0][0], 4, GL_MAP1_VERTEX_3);
-	gluEndCurve(theNurb01);
-
-	//Grafica Ptos de Control
-	glPointSize(15.0);
-	glColor3f(0.0,1.0,1.0);
-	glBegin(GL_POINTS);
-		for (i = 0; i < 4; i++){
-			glVertex3fv(&ctrlpointsCurveNurbs01[i][0]);
-		}
-	glEnd();
-
-	glColor3f(0.0,1.0,0.0);
-	gluBeginCurve(theNurb02);
-		gluNurbsCurve(theNurb02, 8, knots02, 3, &ctrlpointsCurveNurbs02[0][0], 4, GL_MAP1_VERTEX_3);
-	gluEndCurve(theNurb02);
-
-
-	//Grafica Ptos de Control
-	glPointSize(10.0);
-	glColor3f(0.0,1.0,1.0);
-	glBegin(GL_POINTS);
-		for (i = 0; i < 4; i++){
-			glVertex3fv(&ctrlpointsCurveNurbs02[i][0]);
-		}
-	glEnd();
-	*/
-
 	glPushMatrix();
 
+	// Inicializamos la superficie
 	gluBeginSurface(theNurbSurf);
-
 		gluNurbsSurface(theNurbSurf, 25, knotsSurfs, 25, knotsSurfs, 21*3, 3, &ctlpoints[0][0][0], 4, 4, GL_MAP2_VERTEX_3);
 	gluEndSurface(theNurbSurf);
 
-	//glutSolidSphere(4, 30, 30);
-
 	glPopMatrix();
 	
-		/*int i,j;
-		glPointSize(5.0);
-		glDisable(GL_LIGHTING);
-		glColor3f(1.0, 1.0, 0.0);
-		glBegin(GL_POINTS);
-		for (i = 0; i <21; i++) {
-			for (j = 0; j < 21; j++) {
-	            glVertex3f(ctlpoints[i][j][0], 	ctlpoints[i][j][1], ctlpoints[i][j][2]);
-			}
-		}
-		glEnd();
-		glEnable(GL_LIGHTING);*/
 	glEnable(GL_LIGHTING);
 
 	glDisable(GL_BLEND);
@@ -358,6 +231,7 @@ void render(){
 	glutSwapBuffers();
 }
 
+// Lógica del teclado para cambiar valores de las olas
 void Keyboard(unsigned char key, int x, int y)
 {
   switch (key)
@@ -409,7 +283,6 @@ void Keyboard(unsigned char key, int x, int y)
 			imprimirVariables();
 		break;
 
-	// A: altura de la ola
 	case 'X':
 	case 'x':
 			A[waveID]+=0.1;
@@ -423,7 +296,6 @@ void Keyboard(unsigned char key, int x, int y)
 			imprimirVariables();
 		break;
 
-	// S: velocidad de la ola
 	case 'C':
 	case 'c':
 			S[waveID]+=0.1;
@@ -437,7 +309,6 @@ void Keyboard(unsigned char key, int x, int y)
 			imprimirVariables();
 		break;
 
-	// D: vector de dos coordenadas que determina la dirección de la ola - dirX1 y dirX2
 	case 'V':
 	case 'v':
 			Dx[waveID]+=0.1;
@@ -451,7 +322,6 @@ void Keyboard(unsigned char key, int x, int y)
 			imprimirVariables();
 		break;
 
-	// D: vector de dos coordenadas que determina la dirección de la ola - dirY1 y dirY2
 	case 'B':
 	case 'b':
 			Dz[waveID]+=0.1;
