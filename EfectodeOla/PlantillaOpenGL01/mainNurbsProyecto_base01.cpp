@@ -33,19 +33,20 @@ GLfloat ctrPoints01[4][3] = {
 };
 
 GLfloat ctlpointsNurbsSurf[4][4][3];
-GLfloat knotsSurfs[42] = {
-	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0 , 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0
-};
+GLfloat knotsSurfs[25] = {0};
+
+
 
 GLUnurbsObj *theNurb01, *theNurb02, *theNurbSurf;
 float t;
 
 GLfloat ctlpoints[21][21][3] = {0};
 GLfloat L[2] = {1};
-GLfloat A[2] = {1};
-GLfloat S[2] = {1};
-GLfloat D[2] = {1};
-GLfloat W[2] = {1};
+GLfloat A[2] = {0.4};
+GLfloat S[2] = {2};
+GLfloat Dx[2] = {0};
+GLfloat Dz[2] = {-1};
+GLfloat W[2] = {8};
 GLfloat G[2] = {1};
 
 GLUnurbsObj *theNurb;
@@ -99,7 +100,7 @@ void changePoints(int value){
 }
 
 GLfloat newY(GLfloat X, GLfloat Z, GLfloat Wi, GLfloat Ti, GLfloat Gi, int olaID){
-	return A[0]*sin(D[0]*(X+Z)*Wi+Ti*Gi);
+	return A[0]*sin((Dx[0]*X+Dz[0]*Z)*Wi+Ti*Gi);
 }
 
 void updateY(int value){
@@ -109,17 +110,27 @@ void updateY(int value){
 		for (int i = 0; i <21; i++) {
 			for (int j = 0; j < 21; j++) {
 					GLfloat aux= newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W[0],G[0],t,0);
-					printf("NewY = %d\n",aux);
+						printf("NewY = %f\n",aux);
 					ctlpoints[i][j][1] = newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W[0],G[0],t,0);
 			}
 		}
 
-	glutTimerFunc(10,updateY,1);
+	glutTimerFunc(100,updateY,1);
 	glutPostRedisplay();
 }
 
 void init(){
-
+	knotsSurfs[4]=0.058;
+	for (int i = 0; i<4; i++){
+		knotsSurfs[i]=0;
+		knotsSurfs[24-i]=1;
+	}
+	for (int i = 5; i<21; i++){
+		knotsSurfs[i]=knotsSurfs[i-1]+0.058;
+	}
+	for (int i = 0; i<25; i++){
+		printf("knotsSurfs[%d] %f\n",i,knotsSurfs[i]);
+	}
 	theNurb01 = gluNewNurbsRenderer(); //
 	theNurb02 = gluNewNurbsRenderer();
 	gluNurbsProperty(theNurb01, GLU_SAMPLING_TOLERANCE, 15.0);
@@ -344,7 +355,7 @@ void render(){
 
 	gluBeginSurface(theNurbSurf);
 
-	gluNurbsSurface(theNurbSurf, 42, knotsSurfs, 42, knotsSurfs, 21*3, 3, &ctlpoints[0][0][0], 21, 21, GL_MAP2_VERTEX_3);
+	gluNurbsSurface(theNurbSurf, 25, knotsSurfs, 25, knotsSurfs, 21*3, 3, &ctlpoints[0][0][0], 4, 4, GL_MAP2_VERTEX_3);
 	gluEndSurface(theNurbSurf);
 
 	//glutSolidSphere(4, 30, 30);
