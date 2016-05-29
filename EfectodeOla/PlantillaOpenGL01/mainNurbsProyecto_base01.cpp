@@ -3,53 +3,32 @@
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <iostream>
+#include <stdlib.h> 
 
 using namespace std;
 
-#define DEF_floorGridScale	1.0
-#define DEF_floorGridXSteps	10.0
-#define DEF_floorGridZSteps	10.0
-
-GLfloat knots01[8] = {
-	0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0
-};
-
-GLfloat knots02[9] = {
-	0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0
-};
-
-GLfloat ctrlpointsCurveNurbs01[4][3] = {
-	{-10.0, 0.0, 0.0}, {-5.0, 0.0, 8.0},
-	{5.0, 0.0, 8.0}, {10.0, 0.0, 0.0}
-};
-
-GLfloat ctrlpointsCurveNurbs02[5][3] = {
-	{-2.0, 2.0, 0.0}, {-1.0, 2.0, 2.0}, 
-	{1.0, 2.0, -2.0}, {2.0, 2.0, 0.0}, {2.0, 2.0, 1.0}
-};
-
-GLfloat ctrPoints01[4][3] = {
-	{-4.0,0.0,0.0},{-2.0,5.0,0.0},{2.0,5.0,0.0},{4.0,0.0,0.0}
-};
+#define DEF_floorGridScale	1.0f
+#define DEF_floorGridXSteps	10.0f
+#define DEF_floorGridZSteps	10.0f
 
 GLfloat ctlpointsNurbsSurf[4][4][3];
 GLfloat knotsSurfs[25] = {0};
 
 
 
-GLUnurbsObj *theNurb01, *theNurb02, *theNurbSurf;
+GLUnurbsObj *theNurbSurf;
 float t;
 
 GLfloat ctlpoints[21][21][3] = {0};
-GLfloat L = 0.78;
-GLfloat A = 0.4;
-GLfloat S = 2;
-GLfloat Dx = 0;
-GLfloat Dz = -1;
-GLfloat W = 8;
-GLfloat G = 1;
-
-GLUnurbsObj *theNurb;
+GLfloat L[2] = {0};
+GLfloat A[2] = {0};
+GLfloat S[2] = {0};
+GLfloat Dx[2] = {0};
+GLfloat Dz[2] = {0};
+GLfloat W[2] = {0};
+GLfloat G[2] = {0};
+int  waveID = 0;   //By default, it changes wave 1.
+bool paused = true;
 
 #define PI 3.1415926535897932384626433832795
 
@@ -82,40 +61,45 @@ void init_surface(){
 
 }
 
-void changePoints(int value){
 
-	/*t += 0.1;
-		for (int i = 0; i <21; i++) {
-			for (int j = 0; j < 21; j++) {
-				ctlpoints[i][j][1] = 3*sin(t);
-			}
-		}
-	/*ctlpoints[1][1][1] = 3*sin(t);
-	ctlpoints[1][2][1] = -3*sin(t);
-	ctlpoints[2][1][1] = -3*sin(t);
-	ctlpoints[2][2][1] = 3*sin(t);*/
-
-	glutTimerFunc(10,changePoints,1);
-	glutPostRedisplay();
-}
-
-GLfloat newY(GLfloat X, GLfloat Z, GLfloat Wi, GLfloat Ti, GLfloat Gi, int olaID){
-	return A*sin((Dx*X+Dz*Z)*Wi+Ti*Gi);
+GLfloat newY(GLfloat X, GLfloat Z,GLfloat T){
+	return (A[0]*sin((Dx[0]*X+Dz[0]*Z)*W[0]+T*G[0])) + (A[1]*sin((Dx[1]*X+Dz[1]*Z)*W[1]+T*G[1])) ;
 }
 
 void updateY(int value){
-	t += 0.1;
-	W = 2*PI / L;
-	G = S*2*PI / L;
-		for (int i = 0; i <21; i++) {
-			for (int j = 0; j < 21; j++) {
-					ctlpoints[i][j][1] = newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W,t,G,0);
-					printf("NewY = %f\n",ctlpoints[i][j][1]);
-			}
+	if (!paused) {
+		t += 0.1;
+		for (int i = 0; i < 2; i++){
+			W[i] = 2*PI / L[i];
+			G[i] = S[i]*2*PI / L[i];
 		}
-
+			for (int i = 0; i <21; i++) {
+				for (int j = 0; j < 21; j++) {
+						ctlpoints[i][j][1] = newY(ctlpoints[i][j][0],ctlpoints[i][j][2],t);
+				}
+			}
+	}
 	glutTimerFunc(10,updateY,1);
 	glutPostRedisplay();
+}
+
+void imprimirVariables() {
+	system("cls"); // Clear screen
+	if (paused)
+		printf("---Paused---\n\n\n");
+	printf("%s\n\n", "Ola 1");
+	printf("%s%f\n", "wL = ", L[0]);
+	printf("%s%f\n", "aP = ", A[0]);
+	printf("%s%f\n", "sP = ", S[0]);
+	printf("%s%f\n", "dirX = ", Dx[0]);
+	printf("%s%f\n\n", "dirY = ", Dz[0]);
+	printf("\n\n===================\n\n");
+	printf("%s\n\n", "Ola 2");
+	printf("%s%f\n", "wL = ", L[1]);
+	printf("%s%f\n", "aP = ", A[1]);
+	printf("%s%f\n", "sP = ", S[1]);
+	printf("%s%f\n", "dirX = ", Dx[1]);
+	printf("%s%f\n\n", "dirY = ", Dz[1]);
 }
 
 void init(){
@@ -130,29 +114,34 @@ void init(){
 	for (int i = 0; i<25; i++){
 		printf("knotsSurfs[%d] %f\n",i,knotsSurfs[i]);
 	}
-	theNurb01 = gluNewNurbsRenderer(); //
-	theNurb02 = gluNewNurbsRenderer();
-	gluNurbsProperty(theNurb01, GLU_SAMPLING_TOLERANCE, 15.0);
-	gluNurbsProperty(theNurb02, GLU_SAMPLING_TOLERANCE, 15.0);
+   glEnable(GL_LIGHTING);
+   glEnable(GL_LIGHT0);
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_AUTO_NORMAL);
+   glEnable(GL_NORMALIZE);
 
-	theNurbSurf = gluNewNurbsRenderer();
-	gluNurbsProperty(theNurbSurf, GLU_SAMPLING_TOLERANCE, 15.0);
-	gluNurbsProperty(theNurbSurf, GLU_DISPLAY_MODE, GLU_FILL);
-	init_surface();
-	/*
-	ctlpointsNurbsSurf[1][1][1] = 3.0;
-	ctlpointsNurbsSurf[1][2][1] = 3.0;
-	ctlpointsNurbsSurf[2][1][1] = 3.0;
-	ctlpointsNurbsSurf[2][2][1] = 3.0;
-	*/
+   theNurbSurf = gluNewNurbsRenderer();
+   gluNurbsProperty(theNurbSurf, GLU_SAMPLING_TOLERANCE, 15.0);
+   gluNurbsProperty(theNurbSurf, GLU_DISPLAY_MODE, GLU_FILL);
+
+   init_surface();
+
 	puntosNurb();
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_AUTO_NORMAL);
-	glEnable(GL_NORMALIZE);
-
-	glutTimerFunc(10,changePoints,1);
 	glutTimerFunc(10,updateY,1);
 	t = 0.0;
+
+	L[0] = 8;
+	A[0] = 0.4;
+	S[0] = 2;
+	Dx[0]= 0;
+	Dz[0]= -1;
+
+	L[1] = 4;
+	A[1] = 0;
+	S[1] = 0;
+	Dx[1]= 1;
+	Dz[1]= 1;
+	imprimirVariables();
 }
 
 
@@ -198,45 +187,33 @@ void ejesCoordenada() {
 
 void changeViewport(int w, int h) {
 	
+	t += 0.1;
 	float aspectratio;
-	glViewport(0,0,w,h);
+
+	if (h==0)
+		h=1;
+
+   glViewport (0, 0, (GLsizei) w, (GLsizei) h); 
    glMatrixMode (GL_PROJECTION);
    glLoadIdentity ();
-
-   aspectratio = (float) w / (float) h;
-   /*
-   if (w<=h){
-	   glOrtho(-10,10,-10/aspectratio, 10/aspectratio,1.0,-1.0);
-   }
-   else{
-	   glOrtho(-10*aspectratio,10*aspectratio,-10,10,1.0,-1.0);
-   }
-   */
-
-   gluPerspective(30, aspectratio, 1.0, 200.0);
+   gluPerspective(30, (GLfloat) w/(GLfloat) h, 1.0, 200.0);
+   glMatrixMode (GL_MODELVIEW);
   
 }
 
 
 void render(){
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	//gluLookAt(20.0, 10.0, 20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	gluLookAt (25.0, 12.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-	const GLfloat pos[] = {10.0, 10.0, 0.0, 0.0};
-	glLightfv(GL_LIGHT0,GL_POSITION, pos);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
-	glDisable(GL_LIGHTING);
 
 	GLfloat zExtent, xExtent, xLocal, zLocal;
     int loopX, loopZ;
-	// Luz y material
 
+	glLoadIdentity ();                       
+	gluLookAt (25.0, 12.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+	// Luz y material
 	GLfloat mat_diffuse[] = { 0.6, 0.6, 0.9, 1.0 };
 	GLfloat mat_specular[] = { 0.8, 0.8, 1.0, 1.0 };
 	GLfloat mat_shininess[] = { 60.0 };
@@ -244,7 +221,6 @@ void render(){
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-	
 
     GLfloat light_ambient[] = { 0.0, 0.0, 0.2, 1.0 };
 	GLfloat light_diffuse[] = { 0.8, 0.8, 0.8, 1.0 };
@@ -258,7 +234,7 @@ void render(){
 
 
 	// Render Grid 
-	glDisable(GL_LIGHTING);
+	/*glDisable(GL_LIGHTING);
 	glLineWidth(1.0);
 	glPushMatrix();
 	glRotatef(90,1.0,0.0,0.0);
@@ -278,14 +254,14 @@ void render(){
 	glVertex3f( -xExtent, zLocal, 0.0 );
 	glVertex3f(  xExtent, zLocal, 0.0 );
 	}
-    glEnd();*/
+    glEnd();
 	//ejesCoordenada();
     glPopMatrix();
 	glEnable(GL_LIGHTING);
 	// Fin Grid
 	
 	glColor3f(0.0,1.0,0.0);
-	glPointSize(10.0);
+	glPointSize(10.0);*/
 	/*glBegin(GL_POINTS);
 		glVertex2f(0.0,0.0);
 	glEnd();*/
@@ -340,6 +316,7 @@ void render(){
 		gluNurbsCurve(theNurb02, 8, knots02, 3, &ctrlpointsCurveNurbs02[0][0], 4, GL_MAP1_VERTEX_3);
 	gluEndCurve(theNurb02);
 
+
 	//Grafica Ptos de Control
 	glPointSize(10.0);
 	glColor3f(0.0,1.0,1.0);
@@ -350,10 +327,11 @@ void render(){
 	glEnd();
 	*/
 
+	glPushMatrix();
 
 	gluBeginSurface(theNurbSurf);
 
-	gluNurbsSurface(theNurbSurf, 25, knotsSurfs, 25, knotsSurfs, 21*3, 3, &ctlpoints[0][0][0], 4, 4, GL_MAP2_VERTEX_3);
+		gluNurbsSurface(theNurbSurf, 25, knotsSurfs, 25, knotsSurfs, 21*3, 3, &ctlpoints[0][0][0], 4, 4, GL_MAP2_VERTEX_3);
 	gluEndSurface(theNurbSurf);
 
 	//glutSolidSphere(4, 30, 30);
@@ -372,12 +350,115 @@ void render(){
 		}
 		glEnd();
 		glEnable(GL_LIGHTING);*/
+	glEnable(GL_LIGHTING);
+
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 
 	glutSwapBuffers();
 }
 
+void Keyboard(unsigned char key, int x, int y)
+{
+  switch (key)
+  {
+	case 27:             
+		exit (0);
+		break;
+
+	// Switch to wave 1
+	case '1':
+		waveID = 0;
+		break;
+
+	// Switch to wave 2
+	case '2':
+		waveID = 1;
+		break;
+
+	// Empezar la animacion de las olas
+	case 'R': ; 
+	case 'r':
+		paused = false;
+		imprimirVariables();
+		break;
+  
+	// Detener la animacion de las olas
+	case 'P':
+	case 'p':
+		paused = true;
+		break;
+
+	// L: Distancia entre cada ola
+	case 'A':
+	case 'a':
+			L[waveID]-=0.1;
+			imprimirVariables();
+		break;
+
+	case 'Z':
+	case 'z':
+			L[waveID]+=0.1;
+			imprimirVariables();
+		break;
+
+	// A: altura de la ola
+	case 'S':
+	case 's':
+			A[waveID]-=0.1;
+			imprimirVariables();
+		break;
+
+	// A: altura de la ola
+	case 'X':
+	case 'x':
+			A[waveID]+=0.1;
+			imprimirVariables();
+		break;
+
+	// S: velocidad de la ola
+	case 'D':
+	case 'd':
+			S[waveID]-=0.1;
+			imprimirVariables();
+		break;
+
+	// S: velocidad de la ola
+	case 'C':
+	case 'c':
+			S[waveID]+=0.1;
+			imprimirVariables();
+		break;
+
+	// D: vector de dos coordenadas que determina la dirección de la ola - dirX1 y dirX2
+	case 'F':
+	case 'f':
+			Dx[waveID]-=0.1;
+			imprimirVariables();
+		break;
+
+	// D: vector de dos coordenadas que determina la dirección de la ola - dirX1 y dirX2
+	case 'V':
+	case 'v':
+			Dx[waveID]+=0.1;
+			imprimirVariables();
+		break;
+
+	// D: vector de dos coordenadas que determina la dirección de la ola - dirY1 y dirY2
+	case 'G':
+	case 'g':
+			Dz[waveID]-=0.1;
+			imprimirVariables();
+		break;
+
+	// D: vector de dos coordenadas que determina la dirección de la ola - dirY1 y dirY2
+	case 'B':
+	case 'b':
+			Dz[waveID]+=0.1;
+			imprimirVariables();
+		break;
+	}
+}
 
 int main (int argc, char** argv) {
 
@@ -393,7 +474,8 @@ int main (int argc, char** argv) {
 
 	glutReshapeFunc(changeViewport);
 	glutDisplayFunc(render);
-		
+	glutKeyboardFunc(Keyboard);
+
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
 		fprintf(stderr, "GLEW error");
