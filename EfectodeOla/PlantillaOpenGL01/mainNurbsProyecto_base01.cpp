@@ -41,13 +41,13 @@ GLUnurbsObj *theNurb01, *theNurb02, *theNurbSurf;
 float t;
 
 GLfloat ctlpoints[21][21][3] = {0};
-GLfloat L[2] = {1};
-GLfloat A[2] = {0.4};
-GLfloat S[2] = {2};
-GLfloat Dx[2] = {0};
-GLfloat Dz[2] = {-1};
-GLfloat W[2] = {8};
-GLfloat G[2] = {1};
+GLfloat L = 0.78;
+GLfloat A = 0.4;
+GLfloat S = 2;
+GLfloat Dx = 0;
+GLfloat Dz = -1;
+GLfloat W = 8;
+GLfloat G = 1;
 
 GLUnurbsObj *theNurb;
 
@@ -100,22 +100,21 @@ void changePoints(int value){
 }
 
 GLfloat newY(GLfloat X, GLfloat Z, GLfloat Wi, GLfloat Ti, GLfloat Gi, int olaID){
-	return A[0]*sin((Dx[0]*X+Dz[0]*Z)*Wi+Ti*Gi);
+	return A*sin((Dx*X+Dz*Z)*Wi+Ti*Gi);
 }
 
 void updateY(int value){
 	t += 0.1;
-	W[0] = 2*PI / L[0];
-	G[0] = S[0]*2*PI / L[0];
+	W = 2*PI / L;
+	G = S*2*PI / L;
 		for (int i = 0; i <21; i++) {
 			for (int j = 0; j < 21; j++) {
-					GLfloat aux= newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W[0],G[0],t,0);
-						printf("NewY = %f\n",aux);
-					ctlpoints[i][j][1] = newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W[0],G[0],t,0);
+					ctlpoints[i][j][1] = newY(ctlpoints[i][j][0],ctlpoints[i][j][2],W,t,G,0);
+					printf("NewY = %f\n",ctlpoints[i][j][1]);
 			}
 		}
 
-	glutTimerFunc(100,updateY,1);
+	glutTimerFunc(10,updateY,1);
 	glutPostRedisplay();
 }
 
@@ -154,7 +153,6 @@ void init(){
 	glutTimerFunc(10,changePoints,1);
 	glutTimerFunc(10,updateY,1);
 	t = 0.0;
-
 }
 
 
@@ -265,7 +263,7 @@ void render(){
 	glPushMatrix();
 	glRotatef(90,1.0,0.0,0.0);
     glColor3f( 0.0, 0.7, 0.7 );
-    glBegin( GL_LINES );
+   /* glBegin( GL_LINES );
     zExtent = DEF_floorGridScale * DEF_floorGridZSteps;
     for(loopX = -DEF_floorGridXSteps; loopX <= DEF_floorGridXSteps; loopX++ )
 	{
@@ -280,17 +278,17 @@ void render(){
 	glVertex3f( -xExtent, zLocal, 0.0 );
 	glVertex3f(  xExtent, zLocal, 0.0 );
 	}
-    glEnd();
-	ejesCoordenada();
+    glEnd();*/
+	//ejesCoordenada();
     glPopMatrix();
 	glEnable(GL_LIGHTING);
 	// Fin Grid
 	
 	glColor3f(0.0,1.0,0.0);
 	glPointSize(10.0);
-	glBegin(GL_POINTS);
+	/*glBegin(GL_POINTS);
 		glVertex2f(0.0,0.0);
-	glEnd();
+	glEnd();*/
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -362,7 +360,7 @@ void render(){
 
 	glPopMatrix();
 	
-		int i,j;
+		/*int i,j;
 		glPointSize(5.0);
 		glDisable(GL_LIGHTING);
 		glColor3f(1.0, 1.0, 0.0);
@@ -373,7 +371,7 @@ void render(){
 			}
 		}
 		glEnd();
-		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHTING);*/
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 
